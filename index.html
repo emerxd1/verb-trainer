@@ -459,12 +459,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; }
 .flashcard-face .fc-forms {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   margin-top: 12px;
   text-align: center;
 }
 
-.flashcard-face .fc-forms span {
+.flashcard-face .fc-forms span, .flashcard-face .fc-forms div {
   font-size: 0.88rem;
   color: var(--fg);
 }
@@ -652,6 +652,16 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; }
 .mv-actions { display:flex; gap:8px; flex-wrap:wrap; }
 .app-footer { text-align:center; font-size:0.78rem; color:var(--fg-muted); padding:32px 0 calc(24px + env(safe-area-inset-bottom, 0px)); letter-spacing:0.03em; }
 .app-footer strong { color:var(--accent); font-weight:600; }
+.spk { width:28px; height:28px; flex-shrink:0; border-radius:50%; border:1px solid var(--border); background:var(--accent-light); color:var(--accent); font-size:0.8rem; line-height:1; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; transition:all 0.2s; }
+.spk:hover { border-color:var(--accent); }
+.spk.playing { background:var(--accent); color:#fff; }
+.no-tts .spk, .no-tts [data-seq] { display:none; }
+.fl { display:flex; align-items:center; gap:8px; }
+.ipa { font-family:'Noto Sans','Segoe UI','DejaVu Sans',system-ui,sans-serif; font-size:0.78rem; color:var(--fg-muted); margin-top:1px; }
+.fc-forms .fl { justify-content:center; }
+.fc-forms .ipa { text-align:center; }
+.audio-row { margin-top:12px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.audio-row .ipa { font-size:0.82rem; }
 </style>
 </head>
 <body>
@@ -805,6 +815,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; }
         <div class="fc-label" id="fcFrontLabel">Base form</div>
         <div class="fc-word" id="fcFrontWord">—</div>
         <div class="fc-translation" id="fcFrontTrans"></div>
+        <button type="button" class="spk" id="fcSpk" aria-label="Escuchar" style="margin-top:10px">🔊</button>
       </div>
       <div class="flashcard-face flashcard-back">
         <div class="fc-label">Las 3 formas</div>
@@ -981,6 +992,248 @@ const VERBS = [
   { base:"work", past:"worked", pp:"worked", es:"trabajar", type:"regular" },
 ];
 
+// ── Pronunciación (IPA americano + audio del dispositivo) ──
+const IPA_RAW = `be: biː | wʌz / wɝ | bɪn
+begin: bɪˈgɪn | bɪˈgæn | bɪˈgʌn
+become: bɪˈkʌm | bɪˈkeɪm | bɪˈkʌm
+bite: baɪt | bɪt | ˈbɪtən
+break: breɪk | broʊk | ˈbroʊkən
+bring: brɪŋ | brɔt | brɔt
+build: bɪld | bɪlt | bɪlt
+buy: baɪ | bɔt | bɔt
+catch: kætʃ | kɔt | kɔt
+choose: tʃuz | tʃoʊz | ˈtʃoʊzən
+come: kʌm | keɪm | kʌm
+cost: kɔst | kɔst | kɔst
+cut: kʌt | kʌt | kʌt
+do: du | dɪd | dʌn
+draw: drɔ | dru | drɔn
+drink: drɪŋk | dræŋk | drʌŋk
+drive: draɪv | droʊv | ˈdrɪvən
+eat: it | eɪt | ˈitən
+fall: fɔl | fɛl | ˈfɔlən
+feel: fil | fɛlt | fɛlt
+fight: faɪt | fɔt | fɔt
+find: faɪnd | faʊnd | faʊnd
+fly: flaɪ | flu | floʊn
+forget: fərˈgɛt | fərˈgɑt | fərˈgɑtən
+forgive: fərˈgɪv | fərˈgeɪv | fərˈgɪvən
+freeze: friz | froʊz | ˈfroʊzən
+get: gɛt | gɑt | gɑt / ˈgɑtən
+give: gɪv | geɪv | ˈgɪvən
+go: goʊ | wɛnt | gɔn
+grow: groʊ | gru | groʊn
+have: hæv | hæd | hæd
+hear: hɪr | hɝd | hɝd
+hide: haɪd | hɪd | ˈhɪdən
+hit: hɪt | hɪt | hɪt
+hold: hoʊld | hɛld | hɛld
+hurt: hɝt | hɝt | hɝt
+keep: kip | kɛpt | kɛpt
+know: noʊ | nu | noʊn
+lay: leɪ | leɪd | leɪd
+lead: lid | lɛd | lɛd
+leave: liv | lɛft | lɛft
+lend: lɛnd | lɛnt | lɛnt
+let: lɛt | lɛt | lɛt
+lie: laɪ | leɪ | leɪn
+lose: luz | lɔst | lɔst
+make: meɪk | meɪd | meɪd
+mean: min | mɛnt | mɛnt
+meet: mit | mɛt | mɛt
+pay: peɪ | peɪd | peɪd
+put: pʊt | pʊt | pʊt
+read: rid | rɛd | rɛd
+ride: raɪd | roʊd | ˈrɪdən
+ring: rɪŋ | ræŋ | rʌŋ
+rise: raɪz | roʊz | ˈrɪzən
+run: rʌn | ræn | rʌn
+say: seɪ | sɛd | sɛd
+see: si | sɔ | sin
+sell: sɛl | soʊld | soʊld
+send: sɛnd | sɛnt | sɛnt
+set: sɛt | sɛt | sɛt
+shake: ʃeɪk | ʃʊk | ˈʃeɪkən
+shine: ʃaɪn | ʃoʊn | ʃoʊn
+show: ʃoʊ | ʃoʊd | ʃoʊn
+shut: ʃʌt | ʃʌt | ʃʌt
+sing: sɪŋ | sæŋ | sʌŋ
+sit: sɪt | sæt | sæt
+sleep: slip | slɛpt | slɛpt
+speak: spik | spoʊk | ˈspoʊkən
+spend: spɛnd | spɛnt | spɛnt
+stand: stænd | stʊd | stʊd
+steal: stil | stoʊl | ˈstoʊlən
+swim: swɪm | swæm | swʌm
+take: teɪk | tʊk | ˈteɪkən
+teach: titʃ | tɔt | tɔt
+tear: tɛr | tɔr | tɔrn
+tell: tɛl | toʊld | toʊld
+think: θɪŋk | θɔt | θɔt
+throw: θroʊ | θru | θroʊn
+understand: ˌʌndərˈstænd | ˌʌndərˈstʊd | ˌʌndərˈstʊd
+wake: weɪk | woʊk | ˈwoʊkən
+wear: wɛr | wɔr | wɔrn
+win: wɪn | wʌn | wʌn
+write: raɪt | roʊt | ˈrɪtən
+accept: əkˈsɛpt | əkˈsɛptɪd
+add: æd | ˈædɪd
+agree: əˈgri | əˈgrid
+answer: ˈænsər | ˈænsərd
+arrive: əˈraɪv | əˈraɪvd
+ask: æsk | æskt
+believe: bɪˈliv | bɪˈlivd
+call: kɔl | kɔld
+carry: ˈkæri | ˈkærid
+change: tʃeɪndʒ | tʃeɪndʒd
+clean: klin | klind
+close: kloʊz | kloʊzd
+cook: kʊk | kʊkt
+count: kaʊnt | ˈkaʊntɪd
+create: kriˈeɪt | kriˈeɪtɪd
+dance: dæns | dænst
+decide: dɪˈsaɪd | dɪˈsaɪdɪd
+enjoy: ɪnˈdʒɔɪ | ɪnˈdʒɔɪd
+explain: ɪkˈspleɪn | ɪkˈspleɪnd
+finish: ˈfɪnɪʃ | ˈfɪnɪʃt
+follow: ˈfɑloʊ | ˈfɑloʊd
+happen: ˈhæpən | ˈhæpənd
+help: hɛlp | hɛlpt
+hope: hoʊp | hoʊpt
+imagine: ɪˈmædʒɪn | ɪˈmædʒɪnd
+improve: ɪmˈpruv | ɪmˈpruvd
+include: ɪnˈklud | ɪnˈkludɪd
+learn: lɝn | lɝnd
+like: laɪk | laɪkt
+listen: ˈlɪsən | ˈlɪsənd
+live: lɪv | lɪvd
+look: lʊk | lʊkt
+love: lʌv | lʌvd
+move: muv | muvd
+need: nid | ˈnidɪd
+open: ˈoʊpən | ˈoʊpənd
+order: ˈɔrdər | ˈɔrdərd
+play: pleɪ | pleɪd
+prefer: prɪˈfɝ | prɪˈfɝd
+prepare: prɪˈpɛr | prɪˈpɛrd
+promise: ˈprɑmɪs | ˈprɑmɪst
+remember: rɪˈmɛmbər | rɪˈmɛmbərd
+start: stɑrt | ˈstɑrtɪd
+stop: stɑp | stɑpt
+study: ˈstʌdi | ˈstʌdid
+talk: tɔk | tɔkt
+travel: ˈtrævəl | ˈtrævəld
+try: traɪ | traɪd
+turn: tɝn | tɝnd
+use: juz | juzd
+visit: ˈvɪzɪt | ˈvɪzɪtɪd
+wait: weɪt | ˈweɪtɪd
+walk: wɔk | wɔkt
+want: wɑnt | ˈwɑntɪd
+watch: wɑtʃ | wɑtʃt
+work: wɝk | wɝkt
+`;
+const IPA = {};
+IPA_RAW.trim().split('\n').forEach(line => {
+  const [base, rest] = line.split(': ');
+  const f = rest.split(' | ');
+  IPA[base] = [f[0], f[1], f[2] || f[1]];
+});
+const FORM_KEYS = ['base', 'past', 'pp'];
+// Palabras que el sintetizador pronuncia mal de forma aislada
+const SAY_FIX = {
+  read:  ['reed', 'red', 'red'],
+  tear:  ['tare', 'tore', 'torn'],
+  lead:  ['leed', 'led', 'led'],
+  close: ['cloze', 'closed', 'closed'],
+  use:   ['yooz', 'used', 'used'],
+  live:  ['liv', 'lived', 'lived']
+};
+function sayText(v, i) {
+  const fix = SAY_FIX[v.base];
+  return fix ? fix[i] : v[FORM_KEYS[i]];
+}
+function ipaOf(v, i) { const a = IPA[v.base]; return a ? a[i] : ''; }
+function spkBtn(say, label) {
+  return `<button type="button" class="spk" data-say="${say}" aria-label="Escuchar ${label}">🔊</button>`;
+}
+function formBlock(v, i) {
+  const ip = ipaOf(v, i);
+  return `<div class="fl"><span>${v[FORM_KEYS[i]]}</span>${spkBtn(sayText(v, i), v[FORM_KEYS[i]])}</div>` +
+    (ip ? `<div class="ipa">/${ip}/</div>` : '');
+}
+function seqAttr(v) { return [0, 1, 2].map(i => sayText(v, i)).join('|'); }
+function audioRow(v) {
+  const ips = [0, 1, 2].map(i => ipaOf(v, i)).filter(Boolean).map(x => '/' + x + '/').join('  ·  ');
+  return `<div class="audio-row"><button type="button" class="btn btn-secondary" data-seq="${seqAttr(v)}">🔊 Escuchar las 3 formas</button>` +
+    (ips ? `<div class="ipa">${ips}</div>` : '') + '</div>';
+}
+
+let enVoice = null;
+const TTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+if (!TTS) document.documentElement.classList.add('no-tts');
+function pickVoice() {
+  if (!TTS) return;
+  const vs = speechSynthesis.getVoices();
+  const us = vs.filter(v => /^en[-_]US/i.test(v.lang));
+  const en = vs.filter(v => /^en/i.test(v.lang));
+  // Preferir voces locales (funcionan sin internet) y evitar las de red
+  enVoice = us.find(v => v.localService && !/google/i.test(v.name))
+         || us.find(v => v.localService)
+         || en.find(v => v.localService)
+         || us[0] || en[0] || null;
+}
+if (TTS) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+let toastTimer;
+function toast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = 'toast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:0.85rem;z-index:999;max-width:90vw;text-align:center';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 4000);
+}
+const keepAlive = [];   // evita que el navegador descarte los utterances antes de hablar
+function speakWords(words, btn) {
+  if (!TTS) { toast('Este navegador no tiene síntesis de voz.'); return; }
+  if (!enVoice) pickVoice();
+  const list = words.flatMap(w => w.split('/')).map(w => w.trim()).filter(Boolean);
+  const run = () => {
+    keepAlive.length = 0;
+    list.forEach((w, idx) => {
+      const u = new SpeechSynthesisUtterance(w);
+      u.lang = 'en-US';
+      u.rate = 0.8;
+      if (enVoice) u.voice = enVoice;
+      if (idx === 0) u.onerror = ev => {
+        if (ev.error && ev.error !== 'canceled' && ev.error !== 'interrupted')
+          toast('No se pudo reproducir el audio. Revisa que tu dispositivo tenga una voz en inglés instalada.');
+      };
+      if (btn && idx === list.length - 1) u.onend = u.onerror = () => btn.classList.remove('playing');
+      keepAlive.push(u);
+      speechSynthesis.speak(u);
+    });
+    if (btn) btn.classList.add('playing');
+    if (speechSynthesis.paused) speechSynthesis.resume();
+    if (!enVoice && !speechSynthesis.getVoices().length)
+      setTimeout(() => { if (!speechSynthesis.speaking && !speechSynthesis.pending) toast('No hay voces instaladas en este dispositivo. Instala una voz en inglés en los ajustes de texto a voz.'); }, 1200);
+  };
+  if (speechSynthesis.speaking || speechSynthesis.pending) {
+    speechSynthesis.cancel();
+    setTimeout(run, 120);   // Chrome ignora speak() inmediatamente después de cancel()
+  } else run();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-say],[data-seq]');
+  if (!b) return;
+  e.stopPropagation();
+  if (b.dataset.seq) speakWords(b.dataset.seq.split('|'), b);
+  else speakWords([b.dataset.say], b);
+}, true);
+
 // ── Mis verbos (lista personal, en orden) ──
 const MY_LIST = ["be","have","do","go","see","come","get","make","take","eat",
   "drink","write","speak","give","know","find","think","buy","bring","teach",
@@ -1109,9 +1362,9 @@ function renderTable() {
   tbody.innerHTML = filtered.map(v => {
     const lvl = getMasteryLevel(v.base);
     return `<tr>
-      <td><strong>${v.base}</strong></td>
-      <td>${v.past}</td>
-      <td>${v.pp}</td>
+      <td><strong>${formBlock(v, 0)}</strong></td>
+      <td>${formBlock(v, 1)}</td>
+      <td>${formBlock(v, 2)}</td>
       <td>${v.es}</td>
       <td><span class="verb-type ${v.type}">${v.type === 'irregular' ? 'Irreg.' : 'Reg.'}</span></td>
       <td><span class="mastery-dot ${lvl}" title="${getMastery(v.base)}%"></span></td>
@@ -1133,9 +1386,9 @@ function renderMyVerbs() {
     !search || [v.base, v.past, v.pp, v.es].some(x => x.toLowerCase().includes(search)));
   document.getElementById('mvTableBody').innerHTML = rows.length ? rows.map(({ v, n }) => `<tr>
       <td class="num">${n}</td>
-      <td><strong>${v.base}</strong></td>
-      <td>${v.past}</td>
-      <td>${v.pp}</td>
+      <td><strong>${formBlock(v, 0)}</strong></td>
+      <td>${formBlock(v, 1)}</td>
+      <td>${formBlock(v, 2)}</td>
       <td>${v.es}</td>
       <td><span class="mastery-dot ${getMasteryLevel(v.base)}" title="${getMastery(v.base)}%"></span></td>
     </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--fg-muted)">Sin resultados</td></tr>';
@@ -1313,6 +1566,7 @@ function checkPractice() {
   }
 
   recordAnswer(verb.base, allCorrect);
+  corr.innerHTML += audioRow(verb);
   practiceAnswered = true;
   document.getElementById('btnCheck').hidden = true;
   document.getElementById('btnNext').hidden = false;
@@ -1373,16 +1627,18 @@ function renderFlashcard() {
   document.getElementById('flashcard').classList.remove('flipped');
   document.getElementById('fcFrontWord').textContent = v.base;
   document.getElementById('fcFrontTrans').textContent = v.es;
+  document.getElementById('fcSpk').dataset.say = sayText(v, 0);
   document.getElementById('fcBackForms').innerHTML = `
-    <span><strong>Base:</strong> ${v.base}</span>
-    <span><strong>Past Simple:</strong> ${v.past}</span>
-    <span><strong>Past Participle:</strong> ${v.pp}</span>
-    <span style="color:var(--fg-muted);font-style:italic;margin-top:4px">${v.es}</span>
-    <span class="verb-type ${v.type}" style="align-self:center;margin-top:4px">${v.type === 'irregular' ? 'Irregular' : 'Regular'}</span>`;
+    <div><strong>Base:</strong> ${formBlock(v, 0)}</div>
+    <div><strong>Past Simple:</strong> ${formBlock(v, 1)}</div>
+    <div><strong>Past Participle:</strong> ${formBlock(v, 2)}</div>
+    <span style="color:var(--fg-muted);font-style:italic;margin-top:2px">${v.es}</span>
+    <button type="button" class="btn btn-secondary" data-seq="${seqAttr(v)}" style="align-self:center;padding:6px 14px;font-size:0.8rem">🔊 Las 3 formas</button>`;
   document.getElementById('fcCounter').textContent = `${fcIndex + 1} / ${fcDeck.length}`;
 }
 
-document.getElementById('flashcard').addEventListener('click', () => {
+document.getElementById('flashcard').addEventListener('click', e => {
+  if (e.target.closest('.spk,[data-seq]')) return;
   document.getElementById('flashcard').classList.toggle('flipped');
 });
 
