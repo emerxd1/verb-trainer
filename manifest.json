@@ -1,0 +1,24 @@
+{
+  "name": "Verb Trainer",
+  "short_name": "VerbTrainer",
+  "description": "Aprende y practica los verbos en inglés en sus 3 formas",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F7F6F3",
+  "theme_color": "#2D5A27",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

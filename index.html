@@ -1,0 +1,1468 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Verb Trainer</title>
+<meta name="theme-color" content="#2D5A27">
+<meta name="description" content="Aprende y practica los verbos en inglés en sus 3 formas">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap');
+
+/* Layout: sticky header nav, scrollable card-based content, bottom-fixed progress bar */
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --fg: #1A1A1A;
+  --fg-muted: #6B6B6B;
+  --accent: #2D5A27;
+  --accent-light: #E8F0E7;
+  --accent-hover: #3D7A35;
+  --correct: #2D8A4E;
+  --correct-bg: #E6F4EC;
+  --wrong: #C23B22;
+  --wrong-bg: #FCEAE7;
+  --border: #E2E0DB;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  --radius: 10px;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141413;
+    --surface: #1E1E1C;
+    --fg: #E8E6E1;
+    --fg-muted: #9A9A94;
+    --accent: #6BBF59;
+    --accent-light: #1E2D1A;
+    --accent-hover: #7FD46D;
+    --correct: #5ECB7B;
+    --correct-bg: #162A1E;
+    --wrong: #E8654F;
+    --wrong-bg: #2D1A16;
+    --border: #2E2E2B;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #141413;
+  --surface: #1E1E1C;
+  --fg: #E8E6E1;
+  --fg-muted: #9A9A94;
+  --accent: #6BBF59;
+  --accent-light: #1E2D1A;
+  --accent-hover: #7FD46D;
+  --correct: #5ECB7B;
+  --correct-bg: #162A1E;
+  --wrong: #E8654F;
+  --wrong-bg: #2D1A16;
+  --border: #2E2E2B;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  padding-inline: 16px;
+  min-height: 100vh;
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; }
+
+/* Header */
+.header {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 100;
+  background: var(--bg);
+  padding: 16px 0 12px;
+  border-bottom: 1px solid var(--border);
+  margin-inline: -16px;
+  padding-inline: 16px;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header h1 span { font-size: 1.2rem; }
+
+/* Nav tabs */
+.nav {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.nav::-webkit-scrollbar { display: none; }
+
+.nav button {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  color: var(--fg-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.nav button:hover { color: var(--fg); background: var(--accent-light); }
+.nav button.active { background: var(--accent); color: #fff; }
+
+/* Stats row */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 100px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+
+.stat-card .label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+}
+
+.stat-card .value {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+/* Sections */
+.section { display: none; }
+.section.active { display: block; }
+
+/* Study mode */
+.study-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.study-controls select,
+.study-controls input[type="text"] {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  min-width: 0;
+}
+
+.study-controls input[type="text"] {
+  flex: 1;
+  min-width: 140px;
+}
+
+.verb-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.verb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  background: var(--surface);
+}
+
+.verb-table th {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+  text-align: left;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.verb-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.verb-table tr:last-child td { border-bottom: none; }
+
+.verb-table tr:hover td { background: var(--accent-light); }
+
+.verb-type {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.04em;
+}
+
+.verb-type.irregular { background: var(--wrong-bg); color: var(--wrong); }
+.verb-type.regular { background: var(--correct-bg); color: var(--correct); }
+
+.mastery-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.mastery-dot.low { background: var(--wrong); }
+.mastery-dot.mid { background: #E0A528; }
+.mastery-dot.high { background: var(--correct); }
+
+/* Practice mode */
+.practice-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  box-shadow: var(--shadow);
+  max-width: 540px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.practice-card .prompt-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  margin-bottom: 6px;
+}
+
+.practice-card .prompt-word {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--fg);
+  margin-bottom: 6px;
+}
+
+.practice-card .prompt-hint {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+.practice-card .answer-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.answer-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.answer-field label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+  width: 100px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.answer-field input {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+
+.answer-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.answer-field input.correct { border-color: var(--correct); background: var(--correct-bg); }
+.answer-field input.wrong { border-color: var(--wrong); background: var(--wrong-bg); }
+
+.practice-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.btn-secondary:hover { opacity: 0.8; }
+
+.feedback-msg {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-height: 24px;
+}
+
+.feedback-msg.correct { color: var(--correct); }
+.feedback-msg.wrong { color: var(--wrong); }
+
+.correction {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  margin-top: 8px;
+}
+
+.correction strong { color: var(--fg); }
+
+/* Flashcard mode */
+.flashcard-outer {
+  max-width: 440px;
+  margin: 0 auto;
+  perspective: 800px;
+}
+
+.flashcard {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+
+.flashcard.flipped { transform: rotateY(180deg); }
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face .fc-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg-muted);
+  margin-bottom: 8px;
+}
+
+.flashcard-face .fc-word {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--fg);
+  text-align: center;
+}
+
+.flashcard-face .fc-translation {
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.flashcard-face .fc-forms {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+.flashcard-face .fc-forms span {
+  font-size: 0.88rem;
+  color: var(--fg);
+}
+
+.flashcard-face .fc-forms strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.flashcard-nav {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  align-items: center;
+}
+
+.flashcard-nav .counter {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 60px;
+  text-align: center;
+}
+
+.flashcard-nav button {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.flashcard-nav button:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+}
+
+.fc-hint {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--fg-muted);
+}
+
+/* Progress section */
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.progress-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-item .verb-name {
+  font-weight: 600;
+  font-size: 0.92rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-bar-bg {
+  width: 80px;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.4s;
+}
+
+.progress-item .pct {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Practice settings */
+.practice-settings {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.practice-settings select {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.session-score {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.session-score .score-item {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.session-score .score-item.good { color: var(--correct); }
+.session-score .score-item.bad { color: var(--wrong); }
+.session-score .score-item.neutral { color: var(--fg-muted); }
+
+/* Streak badge */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 3px 10px;
+  background: var(--accent-light);
+  border-radius: 12px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--fg-muted);
+}
+
+.empty-state h3 {
+  font-size: 1.2rem;
+  color: var(--fg);
+  margin-bottom: 8px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .practice-card { padding: 24px 16px; }
+  .practice-card .prompt-word { font-size: 1.6rem; }
+  .answer-field { flex-direction: column; align-items: stretch; gap: 4px; }
+  .answer-field label { text-align: left; width: auto; }
+  .stat-card { min-width: 80px; padding: 10px 12px; }
+  .stat-card .value { font-size: 1.3rem; }
+  .flashcard-face .fc-word { font-size: 1.4rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flashcard { transition: none; }
+  * { transition-duration: 0s !important; }
+}
+
+.verb-table .num { color: var(--fg-muted); font-variant-numeric: tabular-nums; width: 1%; }
+.mv-summary { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:16px; }
+.mv-summary p { font-size:0.9rem; color:var(--fg-muted); }
+.mv-summary strong { color:var(--accent); font-family:var(--font-display); font-size:1.2rem; font-weight:400; }
+.mv-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.app-footer { text-align:center; font-size:0.78rem; color:var(--fg-muted); padding:32px 0 calc(24px + env(safe-area-inset-bottom, 0px)); letter-spacing:0.03em; }
+.app-footer strong { color:var(--accent); font-weight:600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1><span>📖</span> Verb Trainer</h1>
+    <div class="streak-badge" id="streakBadge" hidden>🔥 <span id="streakCount">0</span> racha</div>
+  </div>
+  <nav class="nav" role="tablist">
+    <button class="active" data-tab="study" role="tab">Estudiar</button>
+    <button data-tab="myverbs" role="tab">Mis verbos</button>
+    <button data-tab="practice" role="tab">Practicar</button>
+    <button data-tab="flashcards" role="tab">Tarjetas</button>
+    <button data-tab="progress" role="tab">Progreso</button>
+  </nav>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="label">Verbos</div>
+    <div class="value" id="statTotal">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Dominados</div>
+    <div class="value" id="statMastered">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Precisión</div>
+    <div class="value" id="statAccuracy">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Sesiones</div>
+    <div class="value" id="statSessions">0</div>
+  </div>
+</div>
+
+<!-- Study Section -->
+<section class="section active" id="sec-study">
+  <div class="study-controls">
+    <select id="filterType">
+      <option value="all">Todos</option>
+      <option value="irregular">Irregulares</option>
+      <option value="regular">Regulares</option>
+    </select>
+    <select id="filterMastery">
+      <option value="all">Todo nivel</option>
+      <option value="low">Por aprender</option>
+      <option value="mid">En progreso</option>
+      <option value="high">Dominados</option>
+    </select>
+    <input type="text" id="searchVerb" placeholder="Buscar verbo…">
+  </div>
+  <div class="verb-table-wrap">
+    <table class="verb-table">
+      <thead>
+        <tr>
+          <th>Base</th>
+          <th>Past Simple</th>
+          <th>Past Participle</th>
+          <th>Español</th>
+          <th>Tipo</th>
+          <th>Nivel</th>
+        </tr>
+      </thead>
+      <tbody id="verbTableBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- My Verbs Section -->
+<section class="section" id="sec-myverbs">
+  <div class="mv-summary">
+    <p><strong id="mvMastered">0</strong> / <span id="mvTotal">0</span> dominados</p>
+    <div class="mv-actions">
+      <button class="btn btn-primary" id="mvPractice">Practicar mis verbos</button>
+      <button class="btn btn-secondary" id="mvCards">Tarjetas</button>
+    </div>
+  </div>
+  <div class="study-controls">
+    <input type="text" id="mvSearch" placeholder="Buscar en mis verbos…">
+  </div>
+  <div class="verb-table-wrap">
+    <table class="verb-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Base</th>
+          <th>Past Simple</th>
+          <th>Past Participle</th>
+          <th>Español</th>
+          <th>Nivel</th>
+        </tr>
+      </thead>
+      <tbody id="mvTableBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Practice Section -->
+<section class="section" id="sec-practice">
+  <div class="practice-settings">
+    <select id="practiceMode">
+      <option value="base-to-forms">Base → Past / Participle</option>
+      <option value="spanish-to-all">Español → 3 formas</option>
+      <option value="random-fill">Completar forma faltante</option>
+      <option value="past-to-base">Past → Base</option>
+    </select>
+    <select id="practiceDifficulty">
+      <option value="all">Todos los verbos</option>
+      <option value="irregular">Solo irregulares</option>
+      <option value="mine">Mis verbos</option>
+      <option value="weak">Verbos débiles</option>
+    </select>
+  </div>
+  <div class="session-score">
+    <span class="score-item good" id="scoreCorrect">✓ 0</span>
+    <span class="score-item bad" id="scoreWrong">✗ 0</span>
+    <span class="score-item neutral" id="scoreTotal">Total: 0</span>
+  </div>
+  <div class="practice-card" id="practiceCard">
+    <div class="prompt-label" id="practicePromptLabel">Escribe las formas de:</div>
+    <div class="prompt-word" id="practicePromptWord">—</div>
+    <div class="prompt-hint" id="practiceHint"></div>
+    <div class="answer-fields" id="answerFields"></div>
+    <div class="practice-btns">
+      <button class="btn btn-primary" id="btnCheck">Comprobar</button>
+      <button class="btn btn-secondary" id="btnSkip">Saltar</button>
+      <button class="btn btn-secondary" id="btnNext" hidden>Siguiente →</button>
+    </div>
+    <div class="feedback-msg" id="feedbackMsg"></div>
+    <div class="correction" id="correctionMsg"></div>
+  </div>
+</section>
+
+<!-- Flashcards Section -->
+<section class="section" id="sec-flashcards">
+  <div class="practice-settings">
+    <select id="fcFilter">
+      <option value="all">Todos</option>
+      <option value="irregular">Irregulares</option>
+      <option value="mine">Mis verbos</option>
+      <option value="weak">Por aprender</option>
+    </select>
+    <button class="btn btn-secondary" id="btnShuffle">🔀 Mezclar</button>
+  </div>
+  <div class="flashcard-outer">
+    <div class="flashcard" id="flashcard">
+      <div class="flashcard-face flashcard-front">
+        <div class="fc-label" id="fcFrontLabel">Base form</div>
+        <div class="fc-word" id="fcFrontWord">—</div>
+        <div class="fc-translation" id="fcFrontTrans"></div>
+      </div>
+      <div class="flashcard-face flashcard-back">
+        <div class="fc-label">Las 3 formas</div>
+        <div class="fc-forms" id="fcBackForms"></div>
+      </div>
+    </div>
+  </div>
+  <p class="fc-hint">Toca la tarjeta para voltear</p>
+  <div class="flashcard-nav">
+    <button id="fcPrev" aria-label="Anterior">←</button>
+    <span class="counter" id="fcCounter">1 / 1</span>
+    <button id="fcNext" aria-label="Siguiente">→</button>
+  </div>
+</section>
+
+<!-- Progress Section -->
+<section class="section" id="sec-progress">
+  <div class="practice-settings" style="margin-bottom:16px">
+    <select id="progressSort">
+      <option value="alpha">A-Z</option>
+      <option value="mastery-asc">Menor dominio</option>
+      <option value="mastery-desc">Mayor dominio</option>
+    </select>
+    <button class="btn btn-secondary" id="btnReset">Reiniciar progreso</button>
+  </div>
+  <div class="progress-grid" id="progressGrid"></div>
+</section>
+
+<footer class="app-footer">Developed by <strong>Emer</strong></footer>
+
+<script>
+// ── Verb database ──
+const VERBS = [
+  // Irregular verbs
+  { base:"be", past:"was/were", pp:"been", es:"ser/estar", type:"irregular" },
+  { base:"become", past:"became", pp:"become", es:"convertirse", type:"irregular" },
+  { base:"begin", past:"began", pp:"begun", es:"empezar", type:"irregular" },
+  { base:"bite", past:"bit", pp:"bitten", es:"morder", type:"irregular" },
+  { base:"break", past:"broke", pp:"broken", es:"romper", type:"irregular" },
+  { base:"bring", past:"brought", pp:"brought", es:"traer", type:"irregular" },
+  { base:"build", past:"built", pp:"built", es:"construir", type:"irregular" },
+  { base:"buy", past:"bought", pp:"bought", es:"comprar", type:"irregular" },
+  { base:"catch", past:"caught", pp:"caught", es:"atrapar", type:"irregular" },
+  { base:"choose", past:"chose", pp:"chosen", es:"elegir", type:"irregular" },
+  { base:"come", past:"came", pp:"come", es:"venir", type:"irregular" },
+  { base:"cost", past:"cost", pp:"cost", es:"costar", type:"irregular" },
+  { base:"cut", past:"cut", pp:"cut", es:"cortar", type:"irregular" },
+  { base:"do", past:"did", pp:"done", es:"hacer", type:"irregular" },
+  { base:"draw", past:"drew", pp:"drawn", es:"dibujar", type:"irregular" },
+  { base:"drink", past:"drank", pp:"drunk", es:"beber", type:"irregular" },
+  { base:"drive", past:"drove", pp:"driven", es:"conducir", type:"irregular" },
+  { base:"eat", past:"ate", pp:"eaten", es:"comer", type:"irregular" },
+  { base:"fall", past:"fell", pp:"fallen", es:"caer", type:"irregular" },
+  { base:"feel", past:"felt", pp:"felt", es:"sentir", type:"irregular" },
+  { base:"fight", past:"fought", pp:"fought", es:"pelear", type:"irregular" },
+  { base:"find", past:"found", pp:"found", es:"encontrar", type:"irregular" },
+  { base:"fly", past:"flew", pp:"flown", es:"volar", type:"irregular" },
+  { base:"forget", past:"forgot", pp:"forgotten", es:"olvidar", type:"irregular" },
+  { base:"forgive", past:"forgave", pp:"forgiven", es:"perdonar", type:"irregular" },
+  { base:"freeze", past:"froze", pp:"frozen", es:"congelar", type:"irregular" },
+  { base:"get", past:"got", pp:"got/gotten", es:"obtener", type:"irregular" },
+  { base:"give", past:"gave", pp:"given", es:"dar", type:"irregular" },
+  { base:"go", past:"went", pp:"gone", es:"ir", type:"irregular" },
+  { base:"grow", past:"grew", pp:"grown", es:"crecer", type:"irregular" },
+  { base:"have", past:"had", pp:"had", es:"tener", type:"irregular" },
+  { base:"hear", past:"heard", pp:"heard", es:"oír", type:"irregular" },
+  { base:"hide", past:"hid", pp:"hidden", es:"esconder", type:"irregular" },
+  { base:"hit", past:"hit", pp:"hit", es:"golpear", type:"irregular" },
+  { base:"hold", past:"held", pp:"held", es:"sostener", type:"irregular" },
+  { base:"hurt", past:"hurt", pp:"hurt", es:"lastimar", type:"irregular" },
+  { base:"keep", past:"kept", pp:"kept", es:"mantener", type:"irregular" },
+  { base:"know", past:"knew", pp:"known", es:"saber/conocer", type:"irregular" },
+  { base:"lay", past:"laid", pp:"laid", es:"poner/colocar", type:"irregular" },
+  { base:"lead", past:"led", pp:"led", es:"liderar", type:"irregular" },
+  { base:"leave", past:"left", pp:"left", es:"dejar/irse", type:"irregular" },
+  { base:"lend", past:"lent", pp:"lent", es:"prestar", type:"irregular" },
+  { base:"let", past:"let", pp:"let", es:"dejar/permitir", type:"irregular" },
+  { base:"lie", past:"lay", pp:"lain", es:"yacer/acostarse", type:"irregular" },
+  { base:"lose", past:"lost", pp:"lost", es:"perder", type:"irregular" },
+  { base:"make", past:"made", pp:"made", es:"hacer/fabricar", type:"irregular" },
+  { base:"mean", past:"meant", pp:"meant", es:"significar", type:"irregular" },
+  { base:"meet", past:"met", pp:"met", es:"conocer/encontrarse", type:"irregular" },
+  { base:"pay", past:"paid", pp:"paid", es:"pagar", type:"irregular" },
+  { base:"put", past:"put", pp:"put", es:"poner", type:"irregular" },
+  { base:"read", past:"read", pp:"read", es:"leer", type:"irregular" },
+  { base:"ride", past:"rode", pp:"ridden", es:"montar", type:"irregular" },
+  { base:"ring", past:"rang", pp:"rung", es:"sonar/llamar", type:"irregular" },
+  { base:"rise", past:"rose", pp:"risen", es:"levantarse/subir", type:"irregular" },
+  { base:"run", past:"ran", pp:"run", es:"correr", type:"irregular" },
+  { base:"say", past:"said", pp:"said", es:"decir", type:"irregular" },
+  { base:"see", past:"saw", pp:"seen", es:"ver", type:"irregular" },
+  { base:"sell", past:"sold", pp:"sold", es:"vender", type:"irregular" },
+  { base:"send", past:"sent", pp:"sent", es:"enviar", type:"irregular" },
+  { base:"set", past:"set", pp:"set", es:"establecer", type:"irregular" },
+  { base:"shake", past:"shook", pp:"shaken", es:"agitar", type:"irregular" },
+  { base:"shine", past:"shone", pp:"shone", es:"brillar", type:"irregular" },
+  { base:"show", past:"showed", pp:"shown", es:"mostrar", type:"irregular" },
+  { base:"shut", past:"shut", pp:"shut", es:"cerrar", type:"irregular" },
+  { base:"sing", past:"sang", pp:"sung", es:"cantar", type:"irregular" },
+  { base:"sit", past:"sat", pp:"sat", es:"sentarse", type:"irregular" },
+  { base:"sleep", past:"slept", pp:"slept", es:"dormir", type:"irregular" },
+  { base:"speak", past:"spoke", pp:"spoken", es:"hablar", type:"irregular" },
+  { base:"spend", past:"spent", pp:"spent", es:"gastar/pasar", type:"irregular" },
+  { base:"stand", past:"stood", pp:"stood", es:"pararse", type:"irregular" },
+  { base:"steal", past:"stole", pp:"stolen", es:"robar", type:"irregular" },
+  { base:"swim", past:"swam", pp:"swum", es:"nadar", type:"irregular" },
+  { base:"take", past:"took", pp:"taken", es:"tomar", type:"irregular" },
+  { base:"tear", past:"tore", pp:"torn", es:"rasgar", type:"irregular" },
+  { base:"teach", past:"taught", pp:"taught", es:"enseñar", type:"irregular" },
+  { base:"tell", past:"told", pp:"told", es:"decir/contar", type:"irregular" },
+  { base:"think", past:"thought", pp:"thought", es:"pensar", type:"irregular" },
+  { base:"throw", past:"threw", pp:"thrown", es:"lanzar", type:"irregular" },
+  { base:"understand", past:"understood", pp:"understood", es:"entender", type:"irregular" },
+  { base:"wake", past:"woke", pp:"woken", es:"despertar", type:"irregular" },
+  { base:"wear", past:"wore", pp:"worn", es:"llevar puesto", type:"irregular" },
+  { base:"win", past:"won", pp:"won", es:"ganar", type:"irregular" },
+  { base:"write", past:"wrote", pp:"written", es:"escribir", type:"irregular" },
+  // Regular verbs
+  { base:"accept", past:"accepted", pp:"accepted", es:"aceptar", type:"regular" },
+  { base:"add", past:"added", pp:"added", es:"añadir", type:"regular" },
+  { base:"agree", past:"agreed", pp:"agreed", es:"estar de acuerdo", type:"regular" },
+  { base:"answer", past:"answered", pp:"answered", es:"responder", type:"regular" },
+  { base:"arrive", past:"arrived", pp:"arrived", es:"llegar", type:"regular" },
+  { base:"ask", past:"asked", pp:"asked", es:"preguntar", type:"regular" },
+  { base:"believe", past:"believed", pp:"believed", es:"creer", type:"regular" },
+  { base:"call", past:"called", pp:"called", es:"llamar", type:"regular" },
+  { base:"carry", past:"carried", pp:"carried", es:"llevar/cargar", type:"regular" },
+  { base:"change", past:"changed", pp:"changed", es:"cambiar", type:"regular" },
+  { base:"clean", past:"cleaned", pp:"cleaned", es:"limpiar", type:"regular" },
+  { base:"close", past:"closed", pp:"closed", es:"cerrar", type:"regular" },
+  { base:"cook", past:"cooked", pp:"cooked", es:"cocinar", type:"regular" },
+  { base:"count", past:"counted", pp:"counted", es:"contar", type:"regular" },
+  { base:"create", past:"created", pp:"created", es:"crear", type:"regular" },
+  { base:"dance", past:"danced", pp:"danced", es:"bailar", type:"regular" },
+  { base:"decide", past:"decided", pp:"decided", es:"decidir", type:"regular" },
+  { base:"enjoy", past:"enjoyed", pp:"enjoyed", es:"disfrutar", type:"regular" },
+  { base:"explain", past:"explained", pp:"explained", es:"explicar", type:"regular" },
+  { base:"finish", past:"finished", pp:"finished", es:"terminar", type:"regular" },
+  { base:"follow", past:"followed", pp:"followed", es:"seguir", type:"regular" },
+  { base:"happen", past:"happened", pp:"happened", es:"suceder", type:"regular" },
+  { base:"help", past:"helped", pp:"helped", es:"ayudar", type:"regular" },
+  { base:"hope", past:"hoped", pp:"hoped", es:"esperar", type:"regular" },
+  { base:"imagine", past:"imagined", pp:"imagined", es:"imaginar", type:"regular" },
+  { base:"improve", past:"improved", pp:"improved", es:"mejorar", type:"regular" },
+  { base:"include", past:"included", pp:"included", es:"incluir", type:"regular" },
+  { base:"learn", past:"learned", pp:"learned", es:"aprender", type:"regular" },
+  { base:"like", past:"liked", pp:"liked", es:"gustar", type:"regular" },
+  { base:"listen", past:"listened", pp:"listened", es:"escuchar", type:"regular" },
+  { base:"live", past:"lived", pp:"lived", es:"vivir", type:"regular" },
+  { base:"look", past:"looked", pp:"looked", es:"mirar", type:"regular" },
+  { base:"love", past:"loved", pp:"loved", es:"amar", type:"regular" },
+  { base:"move", past:"moved", pp:"moved", es:"mover", type:"regular" },
+  { base:"need", past:"needed", pp:"needed", es:"necesitar", type:"regular" },
+  { base:"open", past:"opened", pp:"opened", es:"abrir", type:"regular" },
+  { base:"order", past:"ordered", pp:"ordered", es:"ordenar", type:"regular" },
+  { base:"play", past:"played", pp:"played", es:"jugar", type:"regular" },
+  { base:"prefer", past:"preferred", pp:"preferred", es:"preferir", type:"regular" },
+  { base:"prepare", past:"prepared", pp:"prepared", es:"preparar", type:"regular" },
+  { base:"promise", past:"promised", pp:"promised", es:"prometer", type:"regular" },
+  { base:"remember", past:"remembered", pp:"remembered", es:"recordar", type:"regular" },
+  { base:"start", past:"started", pp:"started", es:"comenzar", type:"regular" },
+  { base:"stop", past:"stopped", pp:"stopped", es:"parar", type:"regular" },
+  { base:"study", past:"studied", pp:"studied", es:"estudiar", type:"regular" },
+  { base:"talk", past:"talked", pp:"talked", es:"hablar", type:"regular" },
+  { base:"travel", past:"traveled", pp:"traveled", es:"viajar", type:"regular" },
+  { base:"try", past:"tried", pp:"tried", es:"intentar", type:"regular" },
+  { base:"turn", past:"turned", pp:"turned", es:"girar", type:"regular" },
+  { base:"use", past:"used", pp:"used", es:"usar", type:"regular" },
+  { base:"visit", past:"visited", pp:"visited", es:"visitar", type:"regular" },
+  { base:"wait", past:"waited", pp:"waited", es:"esperar", type:"regular" },
+  { base:"walk", past:"walked", pp:"walked", es:"caminar", type:"regular" },
+  { base:"want", past:"wanted", pp:"wanted", es:"querer", type:"regular" },
+  { base:"watch", past:"watched", pp:"watched", es:"mirar/ver", type:"regular" },
+  { base:"work", past:"worked", pp:"worked", es:"trabajar", type:"regular" },
+];
+
+// ── Mis verbos (lista personal, en orden) ──
+const MY_LIST = ["be","have","do","go","see","come","get","make","take","eat",
+  "drink","write","speak","give","know","find","think","buy","bring","teach",
+  "break","choose","drive","fly","begin","run","swim","sing","lose","send",
+  "build","feel","leave","pay","say","tell","sell","stand","understand","win",
+  "become","grow","throw","show","draw","wear","tear","fall","rise","wake",
+  "steal","ride","forget","forgive","hide","bite","cost","cut","put","read"];
+const MY_VERBS = MY_LIST.map(b => VERBS.find(v => v.base === b)).filter(Boolean);
+const MY_SET = new Set(MY_LIST);
+
+// ── State ──
+let progress = {};
+let sessionCorrect = 0;
+let sessionWrong = 0;
+let streak = 0;
+let totalSessions = 0;
+let currentPracticeVerb = null;
+let practiceAnswered = false;
+let fcIndex = 0;
+let fcDeck = [];
+
+// ── LocalStorage ──
+function loadProgress() {
+  try {
+    const d = localStorage.getItem('vt_progress');
+    if (d) progress = JSON.parse(d);
+    const s = localStorage.getItem('vt_sessions');
+    if (s) totalSessions = parseInt(s, 10) || 0;
+  } catch(e) {}
+}
+
+function saveProgress() {
+  try {
+    localStorage.setItem('vt_progress', JSON.stringify(progress));
+    localStorage.setItem('vt_sessions', String(totalSessions));
+  } catch(e) {}
+}
+
+function getMastery(base) {
+  const p = progress[base];
+  if (!p) return 0;
+  const total = p.correct + p.wrong;
+  if (total === 0) return 0;
+  return Math.round((p.correct / total) * 100);
+}
+
+function getMasteryLevel(base) {
+  const m = getMastery(base);
+  if (m >= 80) return 'high';
+  if (m >= 40) return 'mid';
+  return 'low';
+}
+
+function recordAnswer(base, correct) {
+  if (!progress[base]) progress[base] = { correct: 0, wrong: 0 };
+  if (correct) {
+    progress[base].correct++;
+    sessionCorrect++;
+    streak++;
+  } else {
+    progress[base].wrong++;
+    sessionWrong++;
+    streak = 0;
+  }
+  saveProgress();
+  updateStats();
+  updateStreak();
+  renderMyVerbs();
+}
+
+// ── Tabs ──
+document.querySelectorAll('.nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    const id = 'sec-' + btn.dataset.tab;
+    document.getElementById(id).classList.add('active');
+    if (btn.dataset.tab === 'myverbs') renderMyVerbs();
+    if (btn.dataset.tab === 'practice') startPractice();
+    if (btn.dataset.tab === 'flashcards') initFlashcards();
+    if (btn.dataset.tab === 'progress') renderProgress();
+  });
+});
+
+// ── Stats ──
+function updateStats() {
+  document.getElementById('statTotal').textContent = VERBS.length;
+  const mastered = VERBS.filter(v => getMastery(v.base) >= 80).length;
+  document.getElementById('statMastered').textContent = mastered;
+  const total = sessionCorrect + sessionWrong;
+  document.getElementById('statAccuracy').textContent = total > 0
+    ? Math.round((sessionCorrect / total) * 100) + '%'
+    : '—';
+  document.getElementById('statSessions').textContent = totalSessions;
+  document.getElementById('scoreCorrect').textContent = '✓ ' + sessionCorrect;
+  document.getElementById('scoreWrong').textContent = '✗ ' + sessionWrong;
+  document.getElementById('scoreTotal').textContent = 'Total: ' + total;
+}
+
+function updateStreak() {
+  const badge = document.getElementById('streakBadge');
+  if (streak >= 3) {
+    badge.hidden = false;
+    document.getElementById('streakCount').textContent = streak;
+  } else {
+    badge.hidden = true;
+  }
+}
+
+// ── Study Table ──
+function renderTable() {
+  const typeF = document.getElementById('filterType').value;
+  const masteryF = document.getElementById('filterMastery').value;
+  const search = document.getElementById('searchVerb').value.toLowerCase().trim();
+
+  const filtered = VERBS.filter(v => {
+    if (typeF !== 'all' && v.type !== typeF) return false;
+    if (masteryF !== 'all' && getMasteryLevel(v.base) !== masteryF) return false;
+    if (search && !v.base.includes(search) && !v.es.includes(search)
+        && !v.past.includes(search) && !v.pp.includes(search)) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('verbTableBody');
+  tbody.innerHTML = filtered.map(v => {
+    const lvl = getMasteryLevel(v.base);
+    return `<tr>
+      <td><strong>${v.base}</strong></td>
+      <td>${v.past}</td>
+      <td>${v.pp}</td>
+      <td>${v.es}</td>
+      <td><span class="verb-type ${v.type}">${v.type === 'irregular' ? 'Irreg.' : 'Reg.'}</span></td>
+      <td><span class="mastery-dot ${lvl}" title="${getMastery(v.base)}%"></span></td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('filterType').addEventListener('change', renderTable);
+document.getElementById('filterMastery').addEventListener('change', renderTable);
+document.getElementById('searchVerb').addEventListener('input', renderTable);
+
+// ── Mis verbos ──
+function renderMyVerbs() {
+  const search = document.getElementById('mvSearch').value.toLowerCase().trim();
+  document.getElementById('mvTotal').textContent = MY_VERBS.length;
+  document.getElementById('mvMastered').textContent =
+    MY_VERBS.filter(v => getMastery(v.base) >= 80).length;
+  const rows = MY_VERBS.map((v, i) => ({ v, n: i + 1 })).filter(({ v }) =>
+    !search || [v.base, v.past, v.pp, v.es].some(x => x.toLowerCase().includes(search)));
+  document.getElementById('mvTableBody').innerHTML = rows.length ? rows.map(({ v, n }) => `<tr>
+      <td class="num">${n}</td>
+      <td><strong>${v.base}</strong></td>
+      <td>${v.past}</td>
+      <td>${v.pp}</td>
+      <td>${v.es}</td>
+      <td><span class="mastery-dot ${getMasteryLevel(v.base)}" title="${getMastery(v.base)}%"></span></td>
+    </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--fg-muted)">Sin resultados</td></tr>';
+}
+document.getElementById('mvSearch').addEventListener('input', renderMyVerbs);
+function goTab(tab, selectId) {
+  document.getElementById(selectId).value = 'mine';
+  document.querySelector(`.nav button[data-tab="${tab}"]`).click();
+}
+document.getElementById('mvPractice').addEventListener('click', () => goTab('practice', 'practiceDifficulty'));
+document.getElementById('mvCards').addEventListener('click', () => goTab('flashcards', 'fcFilter'));
+
+// ── Practice ──
+function getFilteredVerbs() {
+  const diff = document.getElementById('practiceDifficulty').value;
+  let pool = [...VERBS];
+  if (diff === 'irregular') pool = pool.filter(v => v.type === 'irregular');
+  if (diff === 'mine') pool = pool.filter(v => MY_SET.has(v.base));
+  if (diff === 'weak') pool = pool.filter(v => getMastery(v.base) < 60);
+  if (pool.length === 0) pool = [...VERBS];
+  return pool;
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function normalize(s) {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function checkAnswer(input, expected) {
+  const answers = expected.split('/').map(a => normalize(a));
+  return answers.includes(normalize(input));
+}
+
+function startPractice() {
+  const mode = document.getElementById('practiceMode').value;
+  const pool = getFilteredVerbs();
+  const verb = pickRandom(pool);
+  currentPracticeVerb = verb;
+  practiceAnswered = false;
+
+  const label = document.getElementById('practicePromptLabel');
+  const word = document.getElementById('practicePromptWord');
+  const hint = document.getElementById('practiceHint');
+  const fields = document.getElementById('answerFields');
+  const fb = document.getElementById('feedbackMsg');
+  const corr = document.getElementById('correctionMsg');
+  const btnCheck = document.getElementById('btnCheck');
+  const btnNext = document.getElementById('btnNext');
+
+  fb.textContent = '';
+  fb.className = 'feedback-msg';
+  corr.innerHTML = '';
+  btnCheck.hidden = false;
+  btnNext.hidden = true;
+
+  if (mode === 'base-to-forms') {
+    label.textContent = 'Escribe las formas pasadas de:';
+    word.textContent = verb.base;
+    hint.textContent = verb.es;
+    fields.innerHTML = `
+      <div class="answer-field">
+        <label>Past Simple</label>
+        <input type="text" id="ans1" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="answer-field">
+        <label>Past Participle</label>
+        <input type="text" id="ans2" autocomplete="off" spellcheck="false">
+      </div>`;
+  } else if (mode === 'spanish-to-all') {
+    label.textContent = 'Traduce al inglés en sus 3 formas:';
+    word.textContent = verb.es;
+    hint.textContent = '';
+    fields.innerHTML = `
+      <div class="answer-field">
+        <label>Base</label>
+        <input type="text" id="ans0" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="answer-field">
+        <label>Past Simple</label>
+        <input type="text" id="ans1" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="answer-field">
+        <label>Past Participle</label>
+        <input type="text" id="ans2" autocomplete="off" spellcheck="false">
+      </div>`;
+  } else if (mode === 'random-fill') {
+    const forms = ['base', 'past', 'pp'];
+    const hiddenIdx = Math.floor(Math.random() * 3);
+    const shown = forms.filter((_, i) => i !== hiddenIdx);
+    const labels = { base: 'Base', past: 'Past Simple', pp: 'Past Participle' };
+    label.textContent = 'Completa la forma que falta:';
+    const shownText = shown.map(f => `${labels[f]}: ${verb[f]}`).join(' · ');
+    word.textContent = shownText;
+    hint.textContent = verb.es;
+    fields.innerHTML = `
+      <div class="answer-field">
+        <label>${labels[forms[hiddenIdx]]}</label>
+        <input type="text" id="ansMissing" autocomplete="off" spellcheck="false" data-key="${forms[hiddenIdx]}">
+      </div>`;
+  } else if (mode === 'past-to-base') {
+    label.textContent = '¿Cuál es la forma base?';
+    word.textContent = verb.past;
+    hint.textContent = '(Past Simple)';
+    fields.innerHTML = `
+      <div class="answer-field">
+        <label>Base</label>
+        <input type="text" id="ans0" autocomplete="off" spellcheck="false">
+      </div>`;
+  }
+
+  const firstInput = fields.querySelector('input');
+  if (firstInput) setTimeout(() => firstInput.focus(), 100);
+}
+
+function checkPractice() {
+  if (practiceAnswered) return;
+  const mode = document.getElementById('practiceMode').value;
+  const verb = currentPracticeVerb;
+  if (!verb) return;
+
+  let allCorrect = true;
+  const fb = document.getElementById('feedbackMsg');
+  const corr = document.getElementById('correctionMsg');
+  const corrections = [];
+
+  if (mode === 'base-to-forms') {
+    const a1 = document.getElementById('ans1');
+    const a2 = document.getElementById('ans2');
+    const c1 = checkAnswer(a1.value, verb.past);
+    const c2 = checkAnswer(a2.value, verb.pp);
+    a1.classList.add(c1 ? 'correct' : 'wrong');
+    a2.classList.add(c2 ? 'correct' : 'wrong');
+    if (!c1) { allCorrect = false; corrections.push(`Past Simple: <strong>${verb.past}</strong>`); }
+    if (!c2) { allCorrect = false; corrections.push(`Past Participle: <strong>${verb.pp}</strong>`); }
+  } else if (mode === 'spanish-to-all') {
+    const a0 = document.getElementById('ans0');
+    const a1 = document.getElementById('ans1');
+    const a2 = document.getElementById('ans2');
+    const c0 = checkAnswer(a0.value, verb.base);
+    const c1 = checkAnswer(a1.value, verb.past);
+    const c2 = checkAnswer(a2.value, verb.pp);
+    a0.classList.add(c0 ? 'correct' : 'wrong');
+    a1.classList.add(c1 ? 'correct' : 'wrong');
+    a2.classList.add(c2 ? 'correct' : 'wrong');
+    if (!c0) { allCorrect = false; corrections.push(`Base: <strong>${verb.base}</strong>`); }
+    if (!c1) { allCorrect = false; corrections.push(`Past Simple: <strong>${verb.past}</strong>`); }
+    if (!c2) { allCorrect = false; corrections.push(`Past Participle: <strong>${verb.pp}</strong>`); }
+  } else if (mode === 'random-fill') {
+    const inp = document.getElementById('ansMissing');
+    const key = inp.dataset.key;
+    const ok = checkAnswer(inp.value, verb[key]);
+    inp.classList.add(ok ? 'correct' : 'wrong');
+    if (!ok) {
+      allCorrect = false;
+      const labels = { base: 'Base', past: 'Past Simple', pp: 'Past Participle' };
+      corrections.push(`${labels[key]}: <strong>${verb[key]}</strong>`);
+    }
+  } else if (mode === 'past-to-base') {
+    const a0 = document.getElementById('ans0');
+    const c0 = checkAnswer(a0.value, verb.base);
+    a0.classList.add(c0 ? 'correct' : 'wrong');
+    if (!c0) { allCorrect = false; corrections.push(`Base: <strong>${verb.base}</strong>`); }
+  }
+
+  if (allCorrect) {
+    fb.textContent = '¡Correcto! 🎉';
+    fb.className = 'feedback-msg correct';
+  } else {
+    fb.textContent = 'Incorrecto 😕';
+    fb.className = 'feedback-msg wrong';
+    corr.innerHTML = 'Respuestas: ' + corrections.join(' · ');
+  }
+
+  recordAnswer(verb.base, allCorrect);
+  practiceAnswered = true;
+  document.getElementById('btnCheck').hidden = true;
+  document.getElementById('btnNext').hidden = false;
+
+  // Disable inputs
+  document.querySelectorAll('#answerFields input').forEach(i => i.disabled = true);
+}
+
+document.getElementById('btnCheck').addEventListener('click', checkPractice);
+document.getElementById('btnSkip').addEventListener('click', () => { startPractice(); });
+document.getElementById('btnNext').addEventListener('click', () => { startPractice(); });
+document.getElementById('practiceMode').addEventListener('change', startPractice);
+document.getElementById('practiceDifficulty').addEventListener('change', startPractice);
+
+// Enter key to check
+document.getElementById('answerFields')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (!practiceAnswered) checkPractice();
+    else startPractice();
+  }
+});
+
+// Use event delegation for dynamically added inputs
+document.getElementById('sec-practice').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('#answerFields input')) {
+    e.preventDefault();
+    if (!practiceAnswered) checkPractice();
+    else startPractice();
+  }
+});
+
+// ── Flashcards ──
+function initFlashcards() {
+  const filter = document.getElementById('fcFilter').value;
+  let pool = [...VERBS];
+  if (filter === 'irregular') pool = pool.filter(v => v.type === 'irregular');
+  if (filter === 'mine') pool = pool.filter(v => MY_SET.has(v.base));
+  if (filter === 'weak') pool = pool.filter(v => getMastery(v.base) < 60);
+  if (pool.length === 0) pool = [...VERBS];
+  fcDeck = pool;
+  fcIndex = 0;
+  renderFlashcard();
+}
+
+function shuffleDeck() {
+  for (let i = fcDeck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [fcDeck[i], fcDeck[j]] = [fcDeck[j], fcDeck[i]];
+  }
+  fcIndex = 0;
+  renderFlashcard();
+}
+
+function renderFlashcard() {
+  if (fcDeck.length === 0) return;
+  const v = fcDeck[fcIndex];
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('fcFrontWord').textContent = v.base;
+  document.getElementById('fcFrontTrans').textContent = v.es;
+  document.getElementById('fcBackForms').innerHTML = `
+    <span><strong>Base:</strong> ${v.base}</span>
+    <span><strong>Past Simple:</strong> ${v.past}</span>
+    <span><strong>Past Participle:</strong> ${v.pp}</span>
+    <span style="color:var(--fg-muted);font-style:italic;margin-top:4px">${v.es}</span>
+    <span class="verb-type ${v.type}" style="align-self:center;margin-top:4px">${v.type === 'irregular' ? 'Irregular' : 'Regular'}</span>`;
+  document.getElementById('fcCounter').textContent = `${fcIndex + 1} / ${fcDeck.length}`;
+}
+
+document.getElementById('flashcard').addEventListener('click', () => {
+  document.getElementById('flashcard').classList.toggle('flipped');
+});
+
+document.getElementById('fcPrev').addEventListener('click', () => {
+  if (fcIndex > 0) { fcIndex--; renderFlashcard(); }
+});
+
+document.getElementById('fcNext').addEventListener('click', () => {
+  if (fcIndex < fcDeck.length - 1) { fcIndex++; renderFlashcard(); }
+});
+
+document.getElementById('fcFilter').addEventListener('change', initFlashcards);
+document.getElementById('btnShuffle').addEventListener('click', shuffleDeck);
+
+// Keyboard nav for flashcards
+document.addEventListener('keydown', e => {
+  const fcSection = document.getElementById('sec-flashcards');
+  if (!fcSection.classList.contains('active')) return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'ArrowLeft') { if (fcIndex > 0) { fcIndex--; renderFlashcard(); } }
+  if (e.key === 'ArrowRight') { if (fcIndex < fcDeck.length - 1) { fcIndex++; renderFlashcard(); } }
+  if (e.key === ' ') { e.preventDefault(); document.getElementById('flashcard').classList.toggle('flipped'); }
+});
+
+// ── Progress ──
+function renderProgress() {
+  const sort = document.getElementById('progressSort').value;
+  let list = VERBS.map(v => ({ ...v, mastery: getMastery(v.base) }));
+
+  if (sort === 'alpha') list.sort((a, b) => a.base.localeCompare(b.base));
+  if (sort === 'mastery-asc') list.sort((a, b) => a.mastery - b.mastery);
+  if (sort === 'mastery-desc') list.sort((a, b) => b.mastery - a.mastery);
+
+  const grid = document.getElementById('progressGrid');
+  if (Object.keys(progress).length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <h3>Sin datos aún</h3>
+      <p>Practica algunos verbos para ver tu progreso aquí.</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.filter(v => progress[v.base]).map(v => `
+    <div class="progress-item">
+      <span class="mastery-dot ${getMasteryLevel(v.base)}"></span>
+      <span class="verb-name">${v.base} <span style="color:var(--fg-muted);font-weight:400;font-size:0.8rem">${v.es}</span></span>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width:${v.mastery}%"></div>
+      </div>
+      <span class="pct">${v.mastery}%</span>
+    </div>`).join('');
+}
+
+document.getElementById('progressSort').addEventListener('change', renderProgress);
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (!confirm('¿Reiniciar todo tu progreso?')) return;
+  progress = {};
+  sessionCorrect = 0;
+  sessionWrong = 0;
+  streak = 0;
+  saveProgress();
+  updateStats();
+  updateStreak();
+  renderTable();
+  renderProgress();
+  renderMyVerbs();
+});
+
+// ── Init ──
+loadProgress();
+totalSessions++;
+saveProgress();
+updateStats();
+renderTable();
+initFlashcards();
+renderMyVerbs();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
