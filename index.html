@@ -669,7 +669,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; }
 <div class="header">
   <div class="header-top">
     <h1><span>📖</span> Verb Trainer</h1>
-    <div class="streak-badge" id="streakBadge" hidden>🔥 <span id="streakCount">0</span> racha</div>
+    <div class="streak-badge" id="streakBadge" hidden>🔥 <span id="streakCount">0</span> racha <span id="streakBest"></span></div>
   </div>
   <nav class="nav" role="tablist">
     <button class="active" data-tab="study" role="tab">Estudiar</button>
@@ -749,10 +749,12 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; }
     <table class="verb-table">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Base</th>
-          <th>Past Simple</th>
+          <th>No.</th>
+          <th>Base Form</th>
+          <th>3rd Person (s/es)</th>
+          <th>Simple Past</th>
           <th>Past Participle</th>
+          <th>Gerund (-ing)</th>
           <th>Español</th>
           <th>Nivel</th>
         </tr>
@@ -782,6 +784,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 400; }
     <span class="score-item good" id="scoreCorrect">✓ 0</span>
     <span class="score-item bad" id="scoreWrong">✗ 0</span>
     <span class="score-item neutral" id="scoreTotal">Total: 0</span>
+    <span class="score-item neutral" id="scoreRound">Ronda: 0 / 0</span>
   </div>
   <div class="practice-card" id="practiceCard">
     <div class="prompt-label" id="practicePromptLabel">Escribe las formas de:</div>
@@ -933,6 +936,12 @@ const VERBS = [
   { base:"wear", past:"wore", pp:"worn", es:"llevar puesto", type:"irregular" },
   { base:"win", past:"won", pp:"won", es:"ganar", type:"irregular" },
   { base:"write", past:"wrote", pp:"written", es:"escribir", type:"irregular" },
+  { base:"bend", past:"bent", pp:"bent", es:"doblar", type:"irregular" },
+  { base:"deal", past:"dealt", pp:"dealt", es:"tratar/repartir", type:"irregular" },
+  { base:"feed", past:"fed", pp:"fed", es:"alimentar", type:"irregular" },
+  { base:"seek", past:"sought", pp:"sought", es:"buscar", type:"irregular" },
+  { base:"shoot", past:"shot", pp:"shot", es:"disparar", type:"irregular" },
+  { base:"spread", past:"spread", pp:"spread", es:"esparcir/extender", type:"irregular" },
   // Regular verbs
   { base:"accept", past:"accepted", pp:"accepted", es:"aceptar", type:"regular" },
   { base:"add", past:"added", pp:"added", es:"añadir", type:"regular" },
@@ -1076,6 +1085,12 @@ wake: weɪk | woʊk | ˈwoʊkən
 wear: wɛr | wɔr | wɔrn
 win: wɪn | wʌn | wʌn
 write: raɪt | roʊt | ˈrɪtən
+bend: bɛnd | bɛnt | bɛnt
+deal: dil | dɛlt | dɛlt
+feed: fid | fɛd | fɛd
+seek: sik | sɔt | sɔt
+shoot: ʃut | ʃɑt | ʃɑt
+spread: sprɛd | sprɛd | sprɛd
 accept: əkˈsɛpt | əkˈsɛptɪd
 add: æd | ˈædɪd
 agree: əˈgri | əˈgrid
@@ -1235,13 +1250,92 @@ document.addEventListener('click', e => {
 }, true);
 
 // ── Mis verbos (lista personal, en orden) ──
-const MY_LIST = ["be","have","do","go","see","come","get","make","take","eat",
-  "drink","write","speak","give","know","find","think","buy","bring","teach",
-  "break","choose","drive","fly","begin","run","swim","sing","lose","send",
-  "build","feel","leave","pay","say","tell","sell","stand","understand","win",
-  "become","grow","throw","show","draw","wear","tear","fall","rise","wake",
-  "steal","ride","forget","forgive","hide","bite","cost","cut","put","read"];
-const MY_VERBS = MY_LIST.map(b => VERBS.find(v => v.base === b)).filter(Boolean);
+const MY_TABLE = `1|be|is|was/were|been|being
+2|have|has|had|had|having
+3|do|does|did|done|doing
+4|go|goes|went|gone|going
+5|see|sees|saw|seen|seeing
+6|come|comes|came|come|coming
+7|get|gets|got|gotten|getting
+8|make|makes|made|made|making
+9|take|takes|took|taken|taking
+10|eat|eats|ate|eaten|eating
+11|drink|drinks|drank|drunk|drinking
+12|write|writes|wrote|written|writing
+13|speak|speaks|spoke|spoken|speaking
+14|give|gives|gave|given|giving
+15|know|knows|knew|known|knowing
+16|find|finds|found|found|finding
+17|think|thinks|thought|thought|thinking
+18|buy|buys|bought|bought|buying
+19|bring|brings|brought|brought|bringing
+20|teach|teaches|taught|taught|teaching
+21|break|breaks|broke|broken|breaking
+22|choose|chooses|chose|chosen|choosing
+23|drive|drives|drove|driven|driving
+24|fly|flies|flew|flown|flying
+25|begin|begins|began|begun|beginning
+26|run|runs|ran|run|running
+27|swim|swims|swam|swum|swimming
+28|sing|sings|sang|sung|singing
+29|lose|loses|lost|lost|losing
+30|send|sends|sent|sent|sending
+31|build|builds|built|built|building
+32|feel|feels|felt|felt|feeling
+33|leave|leaves|left|left|leaving
+34|pay|pays|paid|paid|paying
+35|say|says|said|said|saying
+36|tell|tells|told|told|telling
+37|sell|sells|sold|sold|selling
+38|stand|stands|stood|stood|standing
+39|understand|understands|understood|understood|understanding
+40|win|wins|won|won|winning
+41|become|becomes|became|become|becoming
+42|grow|grows|grew|grown|growing
+43|throw|throws|threw|thrown|throwing
+44|show|shows|showed|shown|showing
+45|draw|draws|drew|drawn|drawing
+46|wear|wears|wore|worn|wearing
+47|tear|tears|tore|torn|tearing
+48|fall|falls|fell|fallen|falling
+49|rise|rises|rose|risen|rising
+50|wake|wakes|woke|woken|waking
+51|steal|steals|stole|stolen|stealing
+52|ride|rides|rode|ridden|riding
+53|forget|forgets|forgot|forgotten|forgetting
+54|forgive|forgives|forgave|forgiven|forgiving
+55|hide|hides|hid|hidden|hiding
+56|bite|bites|bit|bitten|biting
+57|cost|costs|cost|cost|costing
+58|cut|cuts|cut|cut|cutting
+59|put|puts|put|put|putting
+60|read|reads|read|read|reading
+61|keep|keeps|kept|kept|keeping
+62|sleep|sleeps|slept|slept|sleeping
+63|meet|meets|met|met|meeting
+64|hold|holds|held|held|holding
+65|catch|catches|caught|caught|catching
+66|fight|fights|fought|fought|fighting
+67|seek|seeks|sought|sought|seeking
+68|mean|means|meant|meant|meaning
+69|deal|deals|dealt|dealt|dealing
+70|bend|bends|bent|bent|bending
+71|lend|lends|lent|lent|lending
+72|shoot|shoots|shot|shot|shooting
+73|hit|hits|hit|hit|hitting
+74|hurt|hurts|hurt|hurt|hurting
+75|let|lets|let|let|letting
+76|set|sets|set|set|setting
+77|shut|shuts|shut|shut|shutting
+78|spread|spreads|spread|spread|spreading
+79|lead|leads|led|led|leading
+80|feed|feeds|fed|fed|feeding`;
+const MY_VERBS = MY_TABLE.split('\n').map(line => {
+  const [n, base, s3, , , ing] = line.split('|');
+  const v = VERBS.find(x => x.base === base);
+  return v ? { ...v, n: +n, s3, ing } : null;
+}).filter(Boolean);
+const MY_LIST = MY_VERBS.map(v => v.base);
 const MY_SET = new Set(MY_LIST);
 
 // ── State ──
@@ -1249,6 +1343,7 @@ let progress = {};
 let sessionCorrect = 0;
 let sessionWrong = 0;
 let streak = 0;
+let bestStreak = 0;
 let totalSessions = 0;
 let currentPracticeVerb = null;
 let practiceAnswered = false;
@@ -1262,6 +1357,8 @@ function loadProgress() {
     if (d) progress = JSON.parse(d);
     const s = localStorage.getItem('vt_sessions');
     if (s) totalSessions = parseInt(s, 10) || 0;
+    streak = parseInt(localStorage.getItem('vt_streak'), 10) || 0;
+    bestStreak = Math.max(streak, parseInt(localStorage.getItem('vt_best'), 10) || 0);
   } catch(e) {}
 }
 
@@ -1269,6 +1366,8 @@ function saveProgress() {
   try {
     localStorage.setItem('vt_progress', JSON.stringify(progress));
     localStorage.setItem('vt_sessions', String(totalSessions));
+    localStorage.setItem('vt_streak', String(streak));
+    localStorage.setItem('vt_best', String(bestStreak));
   } catch(e) {}
 }
 
@@ -1280,10 +1379,16 @@ function getMastery(base) {
   return Math.round((p.correct / total) * 100);
 }
 
+// Dominado = al menos 3 intentos y 80% de aciertos (1 solo acierto no basta)
+function isMastered(base) {
+  const p = progress[base];
+  return !!p && (p.correct + p.wrong) >= 3 && getMastery(base) >= 80;
+}
+
 function getMasteryLevel(base) {
   const m = getMastery(base);
-  if (m >= 80) return 'high';
-  if (m >= 40) return 'mid';
+  if (isMastered(base)) return 'high';
+  if (m >= 40 || (m >= 80 && !isMastered(base))) return 'mid';
   return 'low';
 }
 
@@ -1293,6 +1398,7 @@ function recordAnswer(base, correct) {
     progress[base].correct++;
     sessionCorrect++;
     streak++;
+    if (streak > bestStreak) bestStreak = streak;
   } else {
     progress[base].wrong++;
     sessionWrong++;
@@ -1322,7 +1428,7 @@ document.querySelectorAll('.nav button').forEach(btn => {
 // ── Stats ──
 function updateStats() {
   document.getElementById('statTotal').textContent = VERBS.length;
-  const mastered = VERBS.filter(v => getMastery(v.base) >= 80).length;
+  const mastered = VERBS.filter(v => isMastered(v.base)).length;
   document.getElementById('statMastered').textContent = mastered;
   const total = sessionCorrect + sessionWrong;
   document.getElementById('statAccuracy').textContent = total > 0
@@ -1336,12 +1442,10 @@ function updateStats() {
 
 function updateStreak() {
   const badge = document.getElementById('streakBadge');
-  if (streak >= 3) {
-    badge.hidden = false;
-    document.getElementById('streakCount').textContent = streak;
-  } else {
-    badge.hidden = true;
-  }
+  badge.hidden = bestStreak < 1;
+  document.getElementById('streakCount').textContent = streak;
+  document.getElementById('streakBest').textContent = bestStreak > 0 ? '· récord ' + bestStreak : '';
+  badge.title = 'Respuestas correctas seguidas. Se reinicia al fallar.';
 }
 
 // ── Study Table ──
@@ -1381,21 +1485,26 @@ function renderMyVerbs() {
   const search = document.getElementById('mvSearch').value.toLowerCase().trim();
   document.getElementById('mvTotal').textContent = MY_VERBS.length;
   document.getElementById('mvMastered').textContent =
-    MY_VERBS.filter(v => getMastery(v.base) >= 80).length;
-  const rows = MY_VERBS.map((v, i) => ({ v, n: i + 1 })).filter(({ v }) =>
-    !search || [v.base, v.past, v.pp, v.es].some(x => x.toLowerCase().includes(search)));
+    MY_VERBS.filter(v => isMastered(v.base)).length;
+  const rows = MY_VERBS.map(v => ({ v, n: v.n })).filter(({ v }) =>
+    !search || [v.base, v.s3, v.past, v.pp, v.ing, v.es].some(x => x.toLowerCase().includes(search)));
   document.getElementById('mvTableBody').innerHTML = rows.length ? rows.map(({ v, n }) => `<tr>
       <td class="num">${n}</td>
       <td><strong>${formBlock(v, 0)}</strong></td>
+      <td>${v.s3}</td>
       <td>${formBlock(v, 1)}</td>
       <td>${formBlock(v, 2)}</td>
+      <td>${v.ing}</td>
       <td>${v.es}</td>
       <td><span class="mastery-dot ${getMasteryLevel(v.base)}" title="${getMastery(v.base)}%"></span></td>
-    </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--fg-muted)">Sin resultados</td></tr>';
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--fg-muted)">Sin resultados</td></tr>';
 }
 document.getElementById('mvSearch').addEventListener('input', renderMyVerbs);
 function goTab(tab, selectId) {
-  document.getElementById(selectId).value = 'mine';
+  const sel = document.getElementById(selectId);
+  const changed = sel.value !== 'mine';
+  sel.value = 'mine';
+  if (changed) sel.dispatchEvent(new Event('change'));
   document.querySelector(`.nav button[data-tab="${tab}"]`).click();
 }
 document.getElementById('mvPractice').addEventListener('click', () => goTab('practice', 'practiceDifficulty'));
@@ -1425,11 +1534,50 @@ function checkAnswer(input, expected) {
   return answers.includes(normalize(input));
 }
 
-function startPractice() {
-  const mode = document.getElementById('practiceMode').value;
+// Cola barajada: cada verbo sale una sola vez por ronda (sin repetidos)
+let practiceQueue = [];
+let practiceTotal = 0;
+let practiceDone = 0;
+
+function shuffled(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function resetPracticeQueue() {
   const pool = getFilteredVerbs();
-  const verb = pickRandom(pool);
+  practiceQueue = shuffled(pool);
+  practiceTotal = pool.length;
+  practiceDone = 0;
+  // evita que el primero de la nueva ronda sea el verbo que acaba de salir
+  if (currentPracticeVerb && practiceQueue.length > 1 && practiceQueue[0].base === currentPracticeVerb.base)
+    practiceQueue.push(practiceQueue.shift());
+}
+
+function updateRound() {
+  document.getElementById('scoreRound').textContent = 'Ronda: ' + practiceDone + ' / ' + practiceTotal;
+}
+
+function nextPractice() {
+  if (!practiceQueue.length) {
+    if (practiceDone > 0) toast('¡Ronda completa! Empieza una nueva 🔁');
+    resetPracticeQueue();
+  }
+  renderPractice(practiceQueue.shift());
+}
+
+function startPractice() {   // al entrar a la pestaña: no gasta un verbo si ya hay uno pendiente
+  if (!currentPracticeVerb) nextPractice();
+}
+
+function renderPractice(verb) {
+  const mode = document.getElementById('practiceMode').value;
   currentPracticeVerb = verb;
+  updateRound();
   practiceAnswered = false;
 
   const label = document.getElementById('practicePromptLabel');
@@ -1568,35 +1716,39 @@ function checkPractice() {
   recordAnswer(verb.base, allCorrect);
   corr.innerHTML += audioRow(verb);
   practiceAnswered = true;
+  practiceDone++;
+  updateRound();
   document.getElementById('btnCheck').hidden = true;
   document.getElementById('btnNext').hidden = false;
+  document.getElementById('btnNext').focus();
 
   // Disable inputs
   document.querySelectorAll('#answerFields input').forEach(i => i.disabled = true);
 }
 
 document.getElementById('btnCheck').addEventListener('click', checkPractice);
-document.getElementById('btnSkip').addEventListener('click', () => { startPractice(); });
-document.getElementById('btnNext').addEventListener('click', () => { startPractice(); });
-document.getElementById('practiceMode').addEventListener('change', startPractice);
-document.getElementById('practiceDifficulty').addEventListener('change', startPractice);
-
-// Enter key to check
-document.getElementById('answerFields')?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (!practiceAnswered) checkPractice();
-    else startPractice();
-  }
+document.getElementById('btnSkip').addEventListener('click', () => {
+  // un verbo saltado vuelve al final de la cola (no se pierde ni se repite de inmediato)
+  if (!practiceAnswered && currentPracticeVerb) practiceQueue.push(currentPracticeVerb);
+  nextPractice();
+});
+document.getElementById('btnNext').addEventListener('click', nextPractice);
+document.getElementById('practiceMode').addEventListener('change', () => {
+  if (currentPracticeVerb && !practiceAnswered) renderPractice(currentPracticeVerb);
+  else nextPractice();
+});
+document.getElementById('practiceDifficulty').addEventListener('change', () => {
+  resetPracticeQueue();
+  nextPractice();
 });
 
-// Use event delegation for dynamically added inputs
-document.getElementById('sec-practice').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.target.matches('#answerFields input')) {
-    e.preventDefault();
-    if (!practiceAnswered) checkPractice();
-    else startPractice();
-  }
+// Enter: comprobar; si ya se comprobó, siguiente (un solo listener)
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !document.getElementById('sec-practice').classList.contains('active')) return;
+  if (e.target.closest('button,select')) return;
+  if (!practiceAnswered) {
+    if (e.target.matches('#answerFields input')) { e.preventDefault(); checkPractice(); }
+  } else { e.preventDefault(); nextPractice(); }
 });
 
 // ── Flashcards ──
@@ -1699,6 +1851,8 @@ document.getElementById('btnReset').addEventListener('click', () => {
   sessionCorrect = 0;
   sessionWrong = 0;
   streak = 0;
+  bestStreak = 0;
+  practiceQueue = [];
   saveProgress();
   updateStats();
   updateStreak();
