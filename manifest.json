@@ -1,7 +1,7 @@
 {
   "name": "Verb Trainer",
   "short_name": "VerbTrainer",
-  "description": "Aprende y practica los verbos en inglés en sus 3 formas",
+  "description": "Aprende y practica los verbos en sus 3 formas y Phrasal Verbs  en inglés",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F7F6F3",
