@@ -946,6 +946,28 @@
       text-align: left;
     }
 
+    .audio-ctl {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .audio-ctl select {
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--fg);
+      max-width: 190px;
+    }
+
+    .audio-ctl select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
     /* ── Refresh visual ── */
     :root {
       --radius: 14px;
@@ -1253,6 +1275,17 @@
   <div class="header">
     <div class="header-top">
       <h1>Verb Trainer</h1>
+      <div class="audio-ctl">
+        <select id="audioSpeed" aria-label="Velocidad del audio">
+          <option value="0.5">Audio: muy lento</option>
+          <option value="0.65">Audio: lento</option>
+          <option value="0.8">Audio: normal</option>
+          <option value="1">Audio: rápido</option>
+        </select>
+        <select id="audioVoice" aria-label="Voz del audio">
+          <option value="">Voz automática</option>
+        </select>
+      </div>
       <div class="streak-badge" id="streakBadge" hidden>🔥 <span id="streakCount">0</span> racha <span
           id="streakBest"></span></div>
     </div>
@@ -1355,11 +1388,6 @@
     <div class="mv-summary">
       <p><strong id="phMasteredCount">0</strong> / <span id="phTotalCount">0</span> dominados</p>
       <div class="ph-views">
-        <select id="phSpeed" aria-label="Velocidad del audio">
-          <option value="0.8">🔊 Normal</option>
-          <option value="0.55">🐢 Lento</option>
-          <option value="1">🐇 Rápido</option>
-        </select>
         <button class="btn btn-primary" id="phViewList">Lista</button>
         <button class="btn btn-secondary" id="phViewPractice">Practicar</button>
       </div>
@@ -1894,10 +1922,11 @@ work: wɝk | wɝkt
     function spkBtn(say, label, ph) {
       return `<button type="button" class="spk" data-say="${say}"${ph ? ' data-ph="1"' : ''} aria-label="Escuchar ${label}">🔊</button>`;
     }
-    // Velocidad del audio de phrasal verbs (selector en la pestaña)
-    function phRate() {
-      const s = document.getElementById('phSpeed');
-      return s ? parseFloat(s.value) || 0.8 : 0.8;
+    // Velocidad global del audio (selector del encabezado; por defecto lento)
+    const RATE_KEY = 'vt_rate', VOICE_KEY = 'vt_voice';
+    function audioRate() {
+      const s = document.getElementById('audioSpeed');
+      return s ? parseFloat(s.value) || 0.65 : 0.65;
     }
     function formBlock(v, i) {
       const ip = ipaOf(v, i);
@@ -1914,9 +1943,25 @@ work: wɝk | wɝkt
     let enVoice = null;
     const TTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
     if (!TTS) document.documentElement.classList.add('no-tts');
+    function fillVoiceSelect() {
+      const sel = document.getElementById('audioVoice');
+      if (!sel) return;
+      const list = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang))
+        .sort((a, b) => (/^en[-_]US/i.test(b.lang) - /^en[-_]US/i.test(a.lang)) || a.name.localeCompare(b.name));
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">Voz automática</option>' +
+        list.map(v => `<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join('');
+      let saved = prev;
+      try { saved = saved || localStorage.getItem(VOICE_KEY) || ''; } catch (e) { }
+      if (saved && list.some(v => v.voiceURI === saved)) sel.value = saved;
+    }
     function pickVoice() {
       if (!TTS) return;
       const vs = speechSynthesis.getVoices();
+      fillVoiceSelect();
+      const sel = document.getElementById('audioVoice');
+      const chosen = sel && sel.value && vs.find(v => v.voiceURI === sel.value);
+      if (chosen) { enVoice = chosen; return; }
       const us = vs.filter(v => /^en[-_]US/i.test(v.lang));
       const en = vs.filter(v => /^en/i.test(v.lang));
       // Preferir voces locales (funcionan sin internet) y evitar las de red
@@ -1941,26 +1986,36 @@ work: wɝk | wɝkt
       clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 4000);
     }
     const keepAlive = [];   // evita que el navegador descarte los utterances antes de hablar
+    let speakToken = 0;
     function speakWords(words, btn, rate) {
       if (!TTS) { toast('Este navegador no tiene síntesis de voz.'); return; }
       if (!enVoice) pickVoice();
       const list = words.flatMap(w => w.split('/')).map(w => w.trim()).filter(Boolean);
+      const r = rate || audioRate();
+      const token = ++speakToken;
       const run = () => {
         keepAlive.length = 0;
-        list.forEach((w, idx) => {
-          const u = new SpeechSynthesisUtterance(w);
-          u.lang = 'en-US';
-          u.rate = rate || 0.8;
+        if (btn) btn.classList.add('playing');
+        // Una palabra a la vez, con pausa entre ellas (si no, suenan pegadas y apuradas)
+        const next = i => {
+          if (token !== speakToken || i >= list.length) { if (btn) btn.classList.remove('playing'); return; }
+          const u = new SpeechSynthesisUtterance(list[i]);
+          u.lang = enVoice ? enVoice.lang : 'en-US';
+          u.rate = r; u.pitch = 1; u.volume = 1;
           if (enVoice) u.voice = enVoice;
-          if (idx === 0) u.onerror = ev => {
+          let moved = false;
+          const go = () => { if (moved) return; moved = true; setTimeout(() => next(i + 1), 500); };
+          u.onend = go;
+          u.onerror = ev => {
             if (ev.error && ev.error !== 'canceled' && ev.error !== 'interrupted')
               toast('No se pudo reproducir el audio. Revisa que tu dispositivo tenga una voz en inglés instalada.');
+            go();
           };
-          if (btn && idx === list.length - 1) u.onend = u.onerror = () => btn.classList.remove('playing');
+          setTimeout(go, Math.max(2500, list[i].length * 280 / r));   // por si el motor no dispara onend
           keepAlive.push(u);
           speechSynthesis.speak(u);
-        });
-        if (btn) btn.classList.add('playing');
+        };
+        next(0);
         if (speechSynthesis.paused) speechSynthesis.resume();
         if (!enVoice && !speechSynthesis.getVoices().length)
           setTimeout(() => { if (!speechSynthesis.speaking && !speechSynthesis.pending) toast('No hay voces instaladas en este dispositivo. Instala una voz en inglés en los ajustes de texto a voz.'); }, 1200);
@@ -1974,10 +2029,22 @@ work: wɝk | wɝkt
       const b = e.target.closest('[data-say],[data-seq]');
       if (!b) return;
       e.stopPropagation();
-      const rate = b.hasAttribute('data-ph') ? phRate() : 0.8;
-      if (b.dataset.seq) speakWords(b.dataset.seq.split('|'), b, rate);
-      else speakWords([b.dataset.say], b, rate);
+      if (b.dataset.seq) speakWords(b.dataset.seq.split('|'), b);
+      else speakWords([b.dataset.say], b);
     }, true);
+
+    // Guardar velocidad y voz elegidas
+    (function () {
+      const sp = document.getElementById('audioSpeed'), vo = document.getElementById('audioVoice');
+      try { sp.value = localStorage.getItem(RATE_KEY) || '0.65'; } catch (e) { sp.value = '0.65'; }
+      if (!sp.value) sp.value = '0.65';
+      sp.addEventListener('change', () => { try { localStorage.setItem(RATE_KEY, sp.value); } catch (e) { } speakWords(['listen'], null); });
+      vo.addEventListener('change', () => {
+        try { localStorage.setItem(VOICE_KEY, vo.value); } catch (e) { }
+        pickVoice();
+        speakWords(['listen'], null);
+      });
+    })();
 
     // ── Mis verbos (lista personal, en orden) ──
     const MY_TABLE = `1|be|is|was/were|been|being
