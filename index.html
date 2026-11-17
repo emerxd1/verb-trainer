@@ -927,6 +927,16 @@
       cursor: default;
     }
 
+    .ph-views select {
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--fg);
+    }
+
     .ph-example {
       margin-top: 8px;
       display: flex;
@@ -935,6 +945,306 @@
       justify-content: center;
       text-align: left;
     }
+
+    /* ── Refresh visual ── */
+    :root {
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(20, 30, 20, .05), 0 4px 16px rgba(20, 30, 20, .06);
+      --shadow-lg: 0 2px 4px rgba(20, 30, 20, .06), 0 14px 36px rgba(20, 30, 20, .10);
+      --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent);
+    }
+
+    body {
+      max-width: 980px;
+      margin-inline: auto;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Header */
+    .header {
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom: none;
+      box-shadow: 0 1px 0 var(--border);
+    }
+
+    .header h1 {
+      font-size: 1.7rem;
+      letter-spacing: -0.01em;
+    }
+
+    .header h1 span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      font-size: 1.1rem;
+      background: var(--accent-light);
+      border-radius: 11px;
+    }
+
+    /* Nav como control segmentado */
+    .nav {
+      gap: 2px;
+      padding: 4px;
+      margin-top: 14px;
+      width: max-content;
+      max-width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .nav button {
+      padding: 8px 16px;
+      font-size: 0.84rem;
+    }
+
+    .nav button.active {
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 38%, transparent);
+    }
+
+    .nav button:focus-visible {
+      outline: none;
+      box-shadow: var(--ring);
+    }
+
+    /* Stats */
+    .stats-row {
+      gap: 14px;
+      margin: 22px 0;
+    }
+
+    .stat-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+    }
+
+    .stat-card .value {
+      font-size: 1.95rem;
+      line-height: 1.15;
+      margin-top: 4px;
+    }
+
+    /* Transición entre pestañas */
+    .section.active {
+      animation: fadeUp 0.3s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* Controles */
+    .study-controls select,
+    .study-controls input[type="text"],
+    .practice-settings select,
+    .ph-views select {
+      padding: 9px 14px;
+      border-radius: 10px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .study-controls select:focus,
+    .study-controls input[type="text"]:focus,
+    .practice-settings select:focus,
+    .ph-views select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: var(--ring);
+    }
+
+    .answer-field input {
+      border-radius: 10px;
+    }
+
+    .answer-field input:focus {
+      box-shadow: var(--ring);
+    }
+
+    /* Botones */
+    .btn {
+      border-radius: 10px;
+      padding: 11px 22px;
+    }
+
+    .btn-primary {
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn:focus-visible {
+      outline: none;
+      box-shadow: var(--ring);
+    }
+
+    /* Tablas */
+    .verb-table-wrap {
+      border-radius: var(--radius);
+    }
+
+    .verb-table th {
+      background: var(--accent-light);
+      color: var(--accent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .verb-table tbody tr:nth-child(even) td {
+      background: color-mix(in srgb, var(--fg) 2.5%, transparent);
+    }
+
+    .verb-table tbody tr:hover td {
+      background: var(--accent-light);
+    }
+
+    .mastery-dot {
+      width: 12px;
+      height: 12px;
+      box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 0%, transparent);
+    }
+
+    .verb-type,
+    .ph-cat-tag {
+      padding: 3px 10px;
+    }
+
+    /* Tarjeta de práctica */
+    .practice-card {
+      border-radius: 18px;
+      padding: 36px 28px;
+      border-top: 3px solid var(--accent);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .practice-card .prompt-word {
+      font-size: 2.3rem;
+      letter-spacing: -0.01em;
+    }
+
+    .session-score {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 18px;
+      width: max-content;
+      max-width: 100%;
+      margin-inline: auto;
+      box-shadow: var(--shadow);
+    }
+
+    .feedback-msg {
+      font-size: 1rem;
+    }
+
+    /* Opciones de phrasal */
+    .ph-opt {
+      border-radius: 10px;
+      padding: 13px 16px;
+    }
+
+    .ph-opt:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    /* Flashcards */
+    .flashcard-face {
+      border-radius: 18px;
+      background: linear-gradient(160deg, var(--surface) 55%, var(--accent-light));
+      box-shadow: var(--shadow-lg);
+    }
+
+    .flashcard-face .fc-word {
+      font-size: 2.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .flashcard-nav button {
+      box-shadow: var(--shadow);
+    }
+
+    .flashcard-nav button:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Progreso */
+    .progress-item {
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .progress-item:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .progress-bar-bg {
+      height: 8px;
+      border-radius: 4px;
+    }
+
+    .progress-bar-fill {
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+    }
+
+    /* Racha y botones de audio */
+    .streak-badge {
+      padding: 5px 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .spk:hover {
+      transform: scale(1.08);
+    }
+
+    @media (max-width: 480px) {
+      .nav {
+        width: 100%;
+      }
+
+      .practice-card {
+        padding: 28px 18px;
+      }
+
+      .practice-card .prompt-word {
+        font-size: 1.8rem;
+      }
+
+      .session-score {
+        width: 100%;
+        justify-content: center;
+        border-radius: var(--radius);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .section.active {
+        animation: none;
+      }
+    }
   </style>
 </head>
 
@@ -942,7 +1252,7 @@
 
   <div class="header">
     <div class="header-top">
-      <h1><span>📖</span> Verb Trainer</h1>
+      <h1>Verb Trainer</h1>
       <div class="streak-badge" id="streakBadge" hidden>🔥 <span id="streakCount">0</span> racha <span
           id="streakBest"></span></div>
     </div>
@@ -1045,6 +1355,11 @@
     <div class="mv-summary">
       <p><strong id="phMasteredCount">0</strong> / <span id="phTotalCount">0</span> dominados</p>
       <div class="ph-views">
+        <select id="phSpeed" aria-label="Velocidad del audio">
+          <option value="0.8">🔊 Normal</option>
+          <option value="0.55">🐢 Lento</option>
+          <option value="1">🐇 Rápido</option>
+        </select>
         <button class="btn btn-primary" id="phViewList">Lista</button>
         <button class="btn btn-secondary" id="phViewPractice">Practicar</button>
       </div>
@@ -1394,6 +1709,20 @@
       { cat: 'life', en: 'put up with', es: 'tolerar / soportar', ex: 'Employees should not have to put up with rude behavior.' },
     ];
 
+    const PH_IPA = {
+      'carry out': 'ˈkæri aʊt', 'hand in': 'hænd ɪn', 'catch up on': 'kætʃ ʌp ɑn', 'figure out': 'ˈfɪgjər aʊt',
+      'come up with': 'kʌm ʌp wɪð', 'go over': 'goʊ ˈoʊvər', 'point out': 'pɔɪnt aʊt', 'deal with': 'dil wɪð',
+      'take over': 'teɪk ˈoʊvər', 'follow up on': 'ˈfɑloʊ ʌp ɑn', 'break down': 'breɪk daʊn', 'run out of': 'rʌn aʊt əv',
+      'sort out': 'sɔrt aʊt', 'work out': 'wɝk aʊt', 'put off': 'pʊt ɔf', 'call off': 'kɔl ɔf',
+      'get over': 'gɛt ˈoʊvər', 'turn down': 'tɝn daʊn', 'look into': 'lʊk ˈɪntu', 'hold up': 'hoʊld ʌp',
+      'bring up': 'brɪŋ ʌp', 'get along with': 'gɛt əˈlɔŋ wɪð', 'fall out with': 'fɔl aʊt wɪð', 'speak up': 'spik ʌp',
+      'get across': 'gɛt əˈkrɔs', 'back up': 'bæk ʌp', 'reach out to': 'ritʃ aʊt tu', 'open up': 'ˈoʊpən ʌp',
+      'make up for': 'meɪk ʌp fɔr', 'look up to': 'lʊk ʌp tu', 'look for': 'lʊk fɔr', 'find out': 'faɪnd aʊt',
+      'come across': 'kʌm əˈkrɔs', 'give up': 'gɪv ʌp', 'keep up with': 'kip ʌp wɪð', 'look forward to': 'lʊk ˈfɔrwərd tu',
+      'cut down on': 'kʌt daʊn ɑn', 'set up': 'sɛt ʌp', 'take up': 'teɪk ʌp', 'put up with': 'pʊt ʌp wɪð'
+    };
+    function phIpa(en) { return PH_IPA[en] ? `<div class="ipa">/${PH_IPA[en]}/</div>` : ''; }
+
     // ── Pronunciación (IPA americano + audio del dispositivo) ──
     const IPA_RAW = `be: biː | wʌz / wɝ | bɪn
 begin: bɪˈgɪn | bɪˈgæn | bɪˈgʌn
@@ -1562,8 +1891,13 @@ work: wɝk | wɝkt
       return fix ? fix[i] : v[FORM_KEYS[i]];
     }
     function ipaOf(v, i) { const a = IPA[v.base]; return a ? a[i] : ''; }
-    function spkBtn(say, label) {
-      return `<button type="button" class="spk" data-say="${say}" aria-label="Escuchar ${label}">🔊</button>`;
+    function spkBtn(say, label, ph) {
+      return `<button type="button" class="spk" data-say="${say}"${ph ? ' data-ph="1"' : ''} aria-label="Escuchar ${label}">🔊</button>`;
+    }
+    // Velocidad del audio de phrasal verbs (selector en la pestaña)
+    function phRate() {
+      const s = document.getElementById('phSpeed');
+      return s ? parseFloat(s.value) || 0.8 : 0.8;
     }
     function formBlock(v, i) {
       const ip = ipaOf(v, i);
@@ -1586,7 +1920,9 @@ work: wɝk | wɝkt
       const us = vs.filter(v => /^en[-_]US/i.test(v.lang));
       const en = vs.filter(v => /^en/i.test(v.lang));
       // Preferir voces locales (funcionan sin internet) y evitar las de red
-      enVoice = us.find(v => v.localService && !/google/i.test(v.name))
+      const best = /natural|neural|enhanced|premium|samantha|aria|jenny|ava|allison/i;
+      enVoice = us.find(v => best.test(v.name))
+        || us.find(v => v.localService && !/google/i.test(v.name))
         || us.find(v => v.localService)
         || en.find(v => v.localService)
         || us[0] || en[0] || null;
@@ -1605,7 +1941,7 @@ work: wɝk | wɝkt
       clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 4000);
     }
     const keepAlive = [];   // evita que el navegador descarte los utterances antes de hablar
-    function speakWords(words, btn) {
+    function speakWords(words, btn, rate) {
       if (!TTS) { toast('Este navegador no tiene síntesis de voz.'); return; }
       if (!enVoice) pickVoice();
       const list = words.flatMap(w => w.split('/')).map(w => w.trim()).filter(Boolean);
@@ -1614,7 +1950,7 @@ work: wɝk | wɝkt
         list.forEach((w, idx) => {
           const u = new SpeechSynthesisUtterance(w);
           u.lang = 'en-US';
-          u.rate = 0.8;
+          u.rate = rate || 0.8;
           if (enVoice) u.voice = enVoice;
           if (idx === 0) u.onerror = ev => {
             if (ev.error && ev.error !== 'canceled' && ev.error !== 'interrupted')
@@ -1638,8 +1974,9 @@ work: wɝk | wɝkt
       const b = e.target.closest('[data-say],[data-seq]');
       if (!b) return;
       e.stopPropagation();
-      if (b.dataset.seq) speakWords(b.dataset.seq.split('|'), b);
-      else speakWords([b.dataset.say], b);
+      const rate = b.hasAttribute('data-ph') ? phRate() : 0.8;
+      if (b.dataset.seq) speakWords(b.dataset.seq.split('|'), b, rate);
+      else speakWords([b.dataset.say], b, rate);
     }, true);
 
     // ── Mis verbos (lista personal, en orden) ──
@@ -2188,10 +2525,11 @@ work: wɝk | wɝkt
         (cat === 'all' || p.cat === cat) &&
         (!q || p.en.includes(q) || p.es.toLowerCase().includes(q) || p.ex.toLowerCase().includes(q)));
       document.getElementById('phTableBody').innerHTML = rows.length ? rows.map(p => `<tr>
-      <td><div class="fl"><strong>${p.en}</strong>${spkBtn(p.en, p.en)}</div>
+      <td><div class="fl"><strong>${p.en}</strong>${spkBtn(p.en, p.en, true)}</div>
+        ${phIpa(p.en)}
         <span class="ph-cat-tag">${PH_CATS[p.cat]}</span></td>
       <td class="ph-es">${p.es}</td>
-      <td class="ph-ex"><div class="fl"><span>${p.ex}</span>${spkBtn(p.ex, 'el ejemplo')}</div></td>
+      <td class="ph-ex"><div class="fl"><span>${p.ex}</span>${spkBtn(p.ex, 'el ejemplo', true)}</div></td>
       <td><span class="mastery-dot ${phLevel(p.en)}" title="${phPct(p.en)}%"></span></td>
     </tr>`).join('')
         : '<tr><td colspan="4" style="text-align:center;color:var(--fg-muted)">Sin resultados</td></tr>';
@@ -2279,8 +2617,10 @@ work: wɝk | wɝkt
       fb.className = 'feedback-msg ' + (ok ? 'correct' : 'wrong');
       document.getElementById('phCorrection').innerHTML =
         (ok ? '' : `Respuesta: <strong>${p.en}</strong> — ${p.es}<br>`) +
-        `<div class="ph-example">${spkBtn(p.en, p.en)}<span><strong>${p.en}</strong> · ${p.es}</span></div>` +
-        `<div class="ph-example">${spkBtn(p.ex, 'el ejemplo')}<span>${p.ex}</span></div>`;
+        `<div class="ph-example">${spkBtn(p.en, p.en, true)}<span><strong>${p.en}</strong> · ${p.es}</span></div>` +
+        phIpa(p.en) +
+        `<div class="ph-example">${spkBtn(p.ex, 'el ejemplo', true)}<span>${p.ex}</span></div>` +
+        `<div class="audio-row"><button type="button" class="btn btn-secondary" data-ph="1" data-seq="${p.en}|${p.ex}">🔊 Phrasal + ejemplo</button></div>`;
       document.getElementById('phBtnCheck').hidden = true;
       document.getElementById('phBtnNext').hidden = false;
       document.getElementById('phBtnNext').focus();
